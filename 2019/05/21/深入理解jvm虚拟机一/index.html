@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="内存模型,回收算法,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="JVMJava与Jvm的关系似鱼和水，而开发者与Jvm的关系似情侣相爱相杀。爱它不用像C、C++摆弄指针,把内存控制的权利交给它,恨它一旦出现内存泄漏和溢出方面的问题，如果不理解它的话，无从下手，更别谈优化了。 Jvm基本概念 JVM及Java虚拟机，是可运行Java代码的假象计算机，Jvm是运行在操作系统之上的，它与硬件没有直接交互。 运行过程 我们都知道Java源文件，通过编译器，能够生成相应">
+<meta name="keywords" content="内存模型,回收算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解jvm虚拟机一">
+<meta property="og:url" content="http://yoursite.com/2019/05/21/深入理解jvm虚拟机一/index.html">
+<meta property="og:site_name" content="zhaoSir">
+<meta property="og:description" content="JVMJava与Jvm的关系似鱼和水，而开发者与Jvm的关系似情侣相爱相杀。爱它不用像C、C++摆弄指针,把内存控制的权利交给它,恨它一旦出现内存泄漏和溢出方面的问题，如果不理解它的话，无从下手，更别谈优化了。 Jvm基本概念 JVM及Java虚拟机，是可运行Java代码的假象计算机，Jvm是运行在操作系统之上的，它与硬件没有直接交互。 运行过程 我们都知道Java源文件，通过编译器，能够生成相应">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/jvm1-1.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm1-2.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm1-3.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm1-4.jpg">
+<meta property="og:image" content="http://yoursite.com/images/jvm1-5.jpg">
+<meta property="og:updated_time" content="2019-05-24T12:38:35.576Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解jvm虚拟机一">
+<meta name="twitter:description" content="JVMJava与Jvm的关系似鱼和水，而开发者与Jvm的关系似情侣相爱相杀。爱它不用像C、C++摆弄指针,把内存控制的权利交给它,恨它一旦出现内存泄漏和溢出方面的问题，如果不理解它的话，无从下手，更别谈优化了。 Jvm基本概念 JVM及Java虚拟机，是可运行Java代码的假象计算机，Jvm是运行在操作系统之上的，它与硬件没有直接交互。 运行过程 我们都知道Java源文件，通过编译器，能够生成相应">
+<meta name="twitter:image" content="http://yoursite.com/images/jvm1-1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/21/深入理解jvm虚拟机一/">
+
+
+
+
+
+  <title>深入理解jvm虚拟机一 | zhaoSir</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">zhaoSir</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">一个不正经的开发人员</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/21/深入理解jvm虚拟机一/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zhaoSir">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="zhaoSir">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入理解jvm虚拟机一</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-21T15:39:04+08:00">
+                2019-05-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Jvm/" itemprop="url" rel="index">
+                    <span itemprop="name">Jvm</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  8分钟
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h1><p>Java与Jvm的关系似鱼和水，而开发者与Jvm的关系似情侣相爱相杀。爱它不用像C、C++摆弄指针,把内存控制的权利交给它,恨它一旦出现内存泄漏和溢出方面的问题，如果不理解它的话，无从下手，更别谈优化了。</p>
+<h2 id="Jvm基本概念"><a href="#Jvm基本概念" class="headerlink" title="Jvm基本概念"></a>Jvm基本概念</h2><p> JVM及Java虚拟机，是可运行Java代码的假象计算机，Jvm是运行在操作系统之上的，它与硬件没有直接交互。</p>
+<h2 id="运行过程"><a href="#运行过程" class="headerlink" title="运行过程"></a>运行过程</h2><p> 我们都知道Java源文件，通过编译器，能够生成相应的.class文件，也就是字节码文件，而字节码文件又能通过jvm的解释器，编译成机器上的机器码，大概流程如下：<strong>Java源文件—&gt;编译器—&gt;字节码文件—&gt;jvm—&gt;机器码</strong>，虽然每个平台的解释器不同，但是虚拟机是相同的，这也就是为什么java是跨平台的。</p>
+<h2 id="内存区域"><a href="#内存区域" class="headerlink" title="内存区域"></a>内存区域</h2><p> Jvm把Java程序运行时的内存划分为不同的数据区域，如图所示：<br> <img src="/images/jvm1-1.jpg" alt="jvm内存模型"><br>jvm内存区域主要分为<strong>线程私有（程序计数器、虚拟机栈、本地方法栈）、线程共享（堆、方法区）</strong>、直接内存，线程私有的生命周期与线程相同，依赖用户线程的启动/结束而创建/销毁，线程共享随虚拟机开启/关闭而创建/销毁。直接内存并不是jvm运行时数据区的一部分，在 JDK 1.4 引入的 NIO 提供了基于 Channel 与 Buffer 的 IO 方式， 它可以使用 Native 函数库直接分配堆外内存，然后使用DirectByteBuffer 对象作为这块内存的引用进行操作，这样就避免了在 Java堆和 Native 堆中来回复制数据，因此在一些场景中可以显著提高性能。</p>
+<h3 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h3><p>一块较小的内存空间，是当前线程所执行到的字节码的行号指令器，每个线程都是独立运行的，如果正在执行的是Java方法，则记录的是正在执行的虚拟机字节码行号，如果是native方法，则为空，此区域也是<strong>唯一一个在虚拟机中没有规定任何 OOM 情况的区域。</strong></p>
+<h3 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h3><p>生命周期与线程相同，是描述Java方法执行的内存模型，每个方法在执行的时候都会创建一个栈针，用于存放局部变量表、操作数栈、动态链接、方法出口等信息。每一个方法从调用直至执行结束对应栈针在虚拟机中的入栈和出栈。如果虚拟机栈请求栈深度大于虚拟机所允许的深度，将抛出StrakOverflowError异常；如果扩展时无法申请到足够的内存，将抛出OOM异常，可以<strong>通过xss参数来调节大小，默认1M。</strong></p>
+<h3 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h3><p>与虚拟机中作用相似，区别是虚拟机栈为Java方法服务的，而本地方法栈是为native服务的，它也会抛出同虚拟机栈一样的异常。</p>
+<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><p>是用来存放被创建的对象、数组，也是垃圾回收器进行垃圾回收的主要内存区域，可以通过<strong>xms、xmx</strong>来设置<strong>初始化堆大小、最大堆大小</strong>，默认是最小1/64，最大1/4。由于现代的垃圾回收器都是采用分代回收，因此堆从GC的角度还可以细分为：<strong>新生代（Eden区、From Survivor区、To Survivor区）和老年代。</strong></p>
+<h3 id="方法区-永久代"><a href="#方法区-永久代" class="headerlink" title="方法区/永久代"></a>方法区/永久代</h3><p>用来存放被Jvm加载的类信息、常量、静态变量、即时编译器编译后的代码数据，HotSpot VM把GC分代收集扩展至方法区， 即使用Java堆的永久代来实现方法区， 这样 HotSpot 的垃圾收集器就可以像管理 Java 堆一样管理这部分内存，而不必为方法区开发专门的内存管理器(永久带的内存回收的主要目标是针对常量池的回收和类型的卸载，因此收益一般很小)，通过设<strong>置PermSize和MaxPermSize设置初始化和最大上限（1.7以前）</strong>。</p>
+<h3 id="1-8元数据区"><a href="#1-8元数据区" class="headerlink" title="1.8元数据区"></a>1.8元数据区</h3><p>在Jdk1.8取消了永久代，不在使用虚拟机内的永久代而是改用本地内存——<strong>元数据区（Metaspace）</strong>，通过<strong>MetaspaceSize和MaxMetaspaceSize来设置初始化和最大上限</strong>。至于为什么不使用，理由如下：<br> **1. 永久代调优很难，会为 GC 带来不必要的复杂度，并且回收效率偏低。</p>
+<ol start="2">
+<li>字符串存在永久代中，容易出现性能问题和内存溢出。</li>
+<li>类及方法的信息等比较难确定其大小，因此对于永久代的大小指定比较困难，太小容易出现永久代溢出，太大则容易导致老年代溢出。</li>
+<li>Oracle 可能会将HotSpot 与 JRockit 合二为一。**<h1 id="回收与收集"><a href="#回收与收集" class="headerlink" title="回收与收集"></a>回收与收集</h1><h2 id="两大回收"><a href="#两大回收" class="headerlink" title="两大回收"></a>两大回收</h2>在堆里几乎存放了所有的实例，垃圾回收前，需要判断哪些对象“活着”，哪些对象“死去”。<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3>在java中引用和对象是有关联的，如果操作对象就必须用引用来进行。因此通过引用计数法来判断一个对象是否可以被回收，被引用则计数器+1，引用失效则计数器-1，直到引用计数为0，这是基本的也是比较高效的，但是无法避免相互引用。<h3 id="可达性分析"><a href="#可达性分析" class="headerlink" title="可达性分析"></a>可达性分析</h3>为了避免相互引用问题，Java使用的可达性分析的方法，通过“GC roots”对象作为起点搜索，如果没有可达路径，则该对象不可达，可以被回收。即使这样，也不是说必须回收，如果该对象覆盖了<strong>finalize()方法</strong>，重新引用对象可以进行自救，只会自救一次。因为这个方法对运行代价高，不稳定性，因此也<strong>不推荐使用</strong>。在Java中GC roots对象包括下面四种：<br>**1. 虚拟机栈(栈针中变量表)引用的对象</li>
+<li>本地方法栈(JNI)引用的对象</li>
+<li>方法区中类静态属性引用的对象</li>
+<li>方法区中常量引用的对象**</li>
+</ol>
+<h2 id="四大引用"><a href="#四大引用" class="headerlink" title="四大引用"></a>四大引用</h2><p>无论是引用计数法还是可达性分析，都与Java中引用有关。</p>
+<h3 id="强引用"><a href="#强引用" class="headerlink" title="强引用"></a>强引用</h3><p>Java中常见的引用，Object obj=new Object，即使虚拟机抛出OOM（内存溢出）也不会释放这部分引用，这部分容易造成内存泄漏。</p>
+<h3 id="软引用"><a href="#软引用" class="headerlink" title="软引用"></a>软引用</h3><p>需要用<strong>SoftReference类</strong>实现，描述一些还有用但非必需的对象，当系统内存足够时，是不会回收这部分资源，只有在系统内存不够时，这部分则会被回收。</p>
+<h3 id="弱引用"><a href="#弱引用" class="headerlink" title="弱引用"></a>弱引用</h3><p>需要用<strong>WeakReference类</strong>实现，它比软引用存活时间更短，它的生命周期只存活在下一次垃圾回收之前。</p>
+<h3 id="虚引用"><a href="#虚引用" class="headerlink" title="虚引用"></a>虚引用</h3><p>需要 <strong>PhantomReference 类</strong>来实现，随时被回收，它不能单独使用，<strong>必须和引用队列联合使用</strong>，虚引用的主要作用是跟踪对象被垃圾回收的状态。</p>
+<h1 id="回收算法"><a href="#回收算法" class="headerlink" title="回收算法"></a>回收算法</h1><h2 id="标记-清除（Mark-Sweep）"><a href="#标记-清除（Mark-Sweep）" class="headerlink" title="标记-清除（Mark-Sweep）"></a>标记-清除（Mark-Sweep）</h2><p>最基本的垃圾回收算法，分为两个阶段：标记、清除。标记可以被回收的对象，清除所有被标记的对象。<br>缺点：空间碎片化严重，标记清除，效率都不高。<br><img src="/images/jvm1-2.jpg" alt="标记清除"></p>
+<h2 id="复制（Copying）"><a href="#复制（Copying）" class="headerlink" title="复制（Copying）"></a>复制（Copying）</h2><p>为了解决碎片化问题，按内存容量一分为二，每次只用其中的一块，当一块存满时候，把存活的对象复制到另外一块上，把已使用的内存块清除。<br>缺点：内存使用率低。<br><img src="/images/jvm1-3.jpg" alt="复制算法"></p>
+<h2 id="标记-整理（Mark-Compact）"><a href="#标记-整理（Mark-Compact）" class="headerlink" title="标记-整理（Mark-Compact）"></a>标记-整理（Mark-Compact）</h2><p>结合以上两个算法，标记类似于Mark-Sweep，标记后不是清理对象，而是把存活的对象移向内存的一端，把端以外的对象清除。<br><img src="/images/jvm1-4.jpg" alt="标记整理"></p>
+<h2 id="分代算法"><a href="#分代算法" class="headerlink" title="分代算法"></a>分代算法</h2><p>分代算法是目前大多数JVM使用的回收算法，根据对象存活的不同生命周期来划分内存区域，一般化为老年代和新生代，老年代特点每次垃圾回收只有少量对象被回收，新生代特点每次垃圾回收都会有大量对象被回收，这样就可以根据不同区域来选择不同的回收算法。</p>
+<h3 id="新生代"><a href="#新生代" class="headerlink" title="新生代"></a>新生代</h3><p>目前大多数JVM新生代都是采用复制算法，因为新生代需要回收大部分对象，并不是按照1:1来划分新生代，而是划分为一块较大的Eden空间和两个较小的Survivor空间（from ，to），每次都使用Eden和一部分Survivor区域，当进行回收时，把存活的对象复制到另一块Survivor空间，通过<strong>xmn</strong>调整新生代大小。<br><img src="/images/jvm1-5.jpg" alt="新生代"><br>对象优先分配在新生代，大对象直接则进入老年代（设置-xx:PretenureSizeThreshold参数），长期存活的对象进入老年代(设置-xx:MaxTenuringThreshold，默认15次)，为了更加适应程序的内存状态，并不是要求年龄必须到15才会进入老年代，如果在Survivor空间中所有对象大小的总和大于Survivor空间的一半，年龄大于或等于该年龄的对象也可以直接进入老年代。</p>
+<h3 id="老年代"><a href="#老年代" class="headerlink" title="老年代"></a>老年代</h3><p>老年代存放生命周期比较长的，对象相对稳定，所以采用标记清除或者整理。<br><strong>Minor GC：当新生代内存不足，回收新生代（Ende区和两个Survivor）内存。<br>Major GC：清理老年代，一般伴随着一次Minor，效率比Minor要慢。<br>Full GC：清理整个堆空间，一般调优也就是堆fullGC进行优化，因为它会停止操作，单一线程进行GC。</strong></p>
+
+      
+    </div>
+    
+    
+    
+   <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #111;font-size:16px;">---------------------------------本文结束<i class="fa fa-paw"></i>感谢您的阅读---------------------------------</div>
+    
+</div>
+    
+    </div>
+   
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/内存模型/" rel="tag"><i class="fa fa-tag"> </i> 内存模型</a>
+          
+            <a href="/tags/回收算法/" rel="tag"><i class="fa fa-tag"> </i> 回收算法</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/21/深入理解jvm虚拟机二/" rel="prev" title="深入理解jvm虚拟机二">
+                深入理解jvm虚拟机二 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80NDMyMC8yMDg1Mw=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">zhaoSir</p>
+              <p class="site-description motion-element" itemprop="description">励志全栈开发</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM"><span class="nav-number">1.</span> <span class="nav-text">JVM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Jvm基本概念"><span class="nav-number">1.1.</span> <span class="nav-text">Jvm基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行过程"><span class="nav-number">1.2.</span> <span class="nav-text">运行过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存区域"><span class="nav-number">1.3.</span> <span class="nav-text">内存区域</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#程序计数器"><span class="nav-number">1.3.1.</span> <span class="nav-text">程序计数器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟机栈"><span class="nav-number">1.3.2.</span> <span class="nav-text">虚拟机栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地方法栈"><span class="nav-number">1.3.3.</span> <span class="nav-text">本地方法栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#堆"><span class="nav-number">1.3.4.</span> <span class="nav-text">堆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法区-永久代"><span class="nav-number">1.3.5.</span> <span class="nav-text">方法区/永久代</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-8元数据区"><span class="nav-number">1.3.6.</span> <span class="nav-text">1.8元数据区</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#回收与收集"><span class="nav-number">2.</span> <span class="nav-text">回收与收集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#两大回收"><span class="nav-number">2.1.</span> <span class="nav-text">两大回收</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引用计数法"><span class="nav-number">2.1.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析"><span class="nav-number">2.1.2.</span> <span class="nav-text">可达性分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四大引用"><span class="nav-number">2.2.</span> <span class="nav-text">四大引用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#强引用"><span class="nav-number">2.2.1.</span> <span class="nav-text">强引用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#软引用"><span class="nav-number">2.2.2.</span> <span class="nav-text">软引用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#弱引用"><span class="nav-number">2.2.3.</span> <span class="nav-text">弱引用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚引用"><span class="nav-number">2.2.4.</span> <span class="nav-text">虚引用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#回收算法"><span class="nav-number">3.</span> <span class="nav-text">回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#标记-清除（Mark-Sweep）"><span class="nav-number">3.1.</span> <span class="nav-text">标记-清除（Mark-Sweep）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#复制（Copying）"><span class="nav-number">3.2.</span> <span class="nav-text">复制（Copying）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#标记-整理（Mark-Compact）"><span class="nav-number">3.3.</span> <span class="nav-text">标记-整理（Mark-Compact）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分代算法"><span class="nav-number">3.4.</span> <span class="nav-text">分代算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新生代"><span class="nav-number">3.4.1.</span> <span class="nav-text">新生代</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#老年代"><span class="nav-number">3.4.2.</span> <span class="nav-text">老年代</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zhaoSir</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">网站字总数&#58;</span>
+    
+    <span title="网站字总数">8.2k</span>
+  
+  
+</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":320},"mobile":{"show":true},"log":false,"tagMode":false});</script></body>
+</html>

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="内存模型,Happens-before,as-if-serial,线程安全,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Java并发编程一 最近一直在学习Java中的多线程编程，面试的时候好多手写多线程题，当时就GG了，趁现在工作稳定下来，把这部分记录一下，分享一下自己的理解，如果有不当的地方还请指出。正式开始前有几个概念需要了解下，其实包括为什么要编写多线程、Java中内存模型等。 进程与线程在我们运行一个Java程序或者浏览器等这些应用的时候都是一个个进程，来完成里面的一个个功能比如360中扫描垃圾就是一个线程">
+<meta name="keywords" content="内存模型,Happens-before,as-if-serial,线程安全">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发编程一基础必知">
+<meta property="og:url" content="http://yoursite.com/2019/05/22/Java并发编程一基础必知/index.html">
+<meta property="og:site_name" content="zhaoSir">
+<meta property="og:description" content="Java并发编程一 最近一直在学习Java中的多线程编程，面试的时候好多手写多线程题，当时就GG了，趁现在工作稳定下来，把这部分记录一下，分享一下自己的理解，如果有不当的地方还请指出。正式开始前有几个概念需要了解下，其实包括为什么要编写多线程、Java中内存模型等。 进程与线程在我们运行一个Java程序或者浏览器等这些应用的时候都是一个个进程，来完成里面的一个个功能比如360中扫描垃圾就是一个线程">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/并发1-1.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-2.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-3.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-4.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-5.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-6.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-7.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-8.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-9.jpg">
+<meta property="og:image" content="http://yoursite.com/images/并发1-10.jpg">
+<meta property="og:updated_time" content="2019-05-24T12:38:35.532Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java并发编程一基础必知">
+<meta name="twitter:description" content="Java并发编程一 最近一直在学习Java中的多线程编程，面试的时候好多手写多线程题，当时就GG了，趁现在工作稳定下来，把这部分记录一下，分享一下自己的理解，如果有不当的地方还请指出。正式开始前有几个概念需要了解下，其实包括为什么要编写多线程、Java中内存模型等。 进程与线程在我们运行一个Java程序或者浏览器等这些应用的时候都是一个个进程，来完成里面的一个个功能比如360中扫描垃圾就是一个线程">
+<meta name="twitter:image" content="http://yoursite.com/images/并发1-1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/22/Java并发编程一基础必知/">
+
+
+
+
+
+  <title>Java并发编程一基础必知 | zhaoSir</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">zhaoSir</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">一个不正经的开发人员</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/22/Java并发编程一基础必知/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zhaoSir">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="zhaoSir">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java并发编程一基础必知</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-22T13:46:32+08:00">
+                2019-05-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java并发/" itemprop="url" rel="index">
+                    <span itemprop="name">Java并发</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  5分钟
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Java并发编程一"><a href="#Java并发编程一" class="headerlink" title="Java并发编程一"></a>Java并发编程一</h1><p> 最近一直在学习Java中的多线程编程，面试的时候好多手写多线程题，当时就GG了，趁现在工作稳定下来，把这部分记录一下，分享一下自己的理解，如果有不当的地方还请指出。正式开始前有几个概念需要了解下，其实包括为什么要编写多线程、Java中内存模型等。</p>
+<h2 id="进程与线程"><a href="#进程与线程" class="headerlink" title="进程与线程"></a>进程与线程</h2><p>在我们运行一个Java程序或者浏览器等这些应用的时候都是一个个进程，来完成里面的一个个功能比如360中扫描垃圾就是一个线程。<br><strong>进程：一段程序代码执行的过程，是系统进行资源分配的基本单位。<br>线程：是CPU进行运算和调度的基本单位。</strong><br>两者区别：一个进程中可以有多个线程，线程之间共享进程，进程与进程之间隔离。<br>CPU使用<strong>时间片轮转</strong>来调度线程，当线程时间片用完，就会让出CPU，等到下一次的获取时间片继续运行，在上一篇中讲解程序计数器，它用来记录当前字节码的行号，CPU就会知道你上一次执行到哪里，从而往下继续执行。</p>
+<h2 id="并发与并行"><a href="#并发与并行" class="headerlink" title="并发与并行"></a>并发与并行</h2><p>并发：一个CPU把时间片分配给各个线程，在一个时间段内的线程代码运行时，其它线程处于阻塞状态（赛跑争取）。<br>并行：多个CPU上，线程互不抢占CPU资源，同时运行（并排行走）。</p>
+<h2 id="为什么使用多线程"><a href="#为什么使用多线程" class="headerlink" title="为什么使用多线程"></a>为什么使用多线程</h2><p>因为现在的硬件水平不断提高，处理器的核心数量也越来越多，如果线程只使用一个处理器核心，其他处理器闲置，就太浪费资源了，让多线程在多个处理器核心上跑，会显著减少程序的处理时间，有更快的响应速度，执行效率显著提高。</p>
+<h2 id="线程的生命周期"><a href="#线程的生命周期" class="headerlink" title="线程的生命周期"></a>线程的生命周期</h2><p>新建：初始化线程，进入新建状态。如：Thread t=new Thread();<br>就绪：线程获取到CPU时间片，进去就绪状态，等待执行。如：t.start();<br>运行：就绪的线程获取CPU使用权，进入运行状态。进入运行状态只有一个入口就绪。<br>阻塞：运行的线程由于某些原因放弃CPU，进入到阻塞状态，等待CPU重新调度执行。<br>死亡：线程运行完毕或者发生异常。<br>  <img src="/images/并发1-1.jpg" alt="线程生命周期"></p>
+<h2 id="Java内存模型"><a href="#Java内存模型" class="headerlink" title="Java内存模型"></a>Java内存模型</h2><h3 id="重排序"><a href="#重排序" class="headerlink" title="重排序"></a>重排序</h3><p> 在执行代码时，为了提高性能，编译器和处理器会对代码进行重排序。<br> <strong>编译器重排序</strong>：<strong>在不改变单线程结果前提下，可以重新安排执行语句的顺序。</strong><br> <strong>处理器重排序（指令与内存）</strong>：<strong>如果数据不存在依赖性，可以改成语句对应的机器指令顺序。</strong><br> 从源代码到最终的执行指令：<img src="/images/并发1-2.jpg" alt="重排序"></p>
+<h3 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a>内存模型</h3><p>Java中线程之间<strong>通信采用的是共享内存模型</strong>，Java线程是由Java内存模型（Java Memory Model）JMM控制，<strong>JMM决定了一个线程对共享变量的写入何时对另外一个线程可见：线程之间的共享变量存储在主内容，每个线程有一个私有的工作内存，他们会把共享变量备份至自己的私有内存，操作后再放到共享内存，不同线程之间无法直接访问对方工作内存之中的变量</strong>。因为直接操作主内存太慢，操作本地内存就很快，类似内存和高速缓存。<br><img src="/images/并发1-3.jpg" alt="内存模型"></p>
+<h3 id="Happens-before"><a href="#Happens-before" class="headerlink" title="Happens-before"></a>Happens-before</h3><p>在JMM中，<strong>如果一个操作执行的结果需要对另外一个操作可见，那么这两个操作就必须存在Happens-before（先行发生）关系</strong>，与程序员相关的happens-before有四个规则：</p>
+<ul>
+<li><strong>程序顺序规则：一个线程中的每个操作，happens-before与该线程中后续操作。</strong></li>
+<li><strong>监视器规则：对一个锁的解锁，happens-before与随后的加锁。</strong></li>
+<li><strong>volatile变量规则：对一个volatile域的写，happens-before对这个volatile域的读。</strong></li>
+<li><strong>传递性规则：如果A happens-before B，B happens-before C，那么A happens-before C。</strong><h3 id="as-if-serial语义"><a href="#as-if-serial语义" class="headerlink" title="as-if-serial语义"></a>as-if-serial语义</h3>as-if-serial意思是<strong>不管怎么重排序，单线程的情况下程序结果不能改变</strong>。编译器和处理器都必须遵守as-if-serial语义，这样我们就不用担心编译器和处理器重排序，也不用担心内存可见性问题。<h3 id="happens-before与JMM的关系"><a href="#happens-before与JMM的关系" class="headerlink" title="happens-before与JMM的关系"></a>happens-before与JMM的关系</h3><img src="/images/并发1-4.jpg" alt="在这里插入图片描述"></li>
+</ul>
+<h2 id="线程安全"><a href="#线程安全" class="headerlink" title="线程安全"></a>线程安全</h2><p><strong>当多个线程访问一个对象时，如果不用考虑这些线程在运行环境下的调度和交替执行，也不需要进行额外的同步，调用这个对象的行为都可以获得正确的结果，那这个对象就是线程安全的</strong>。线程安全满足以下三个条件：</p>
+<ol>
+<li><strong>原子性：操作不可中断要么成功要么失败。</strong> </li>
+<li><strong>可见性：当一个线程修改完一个变量，另一个线程立即得到最新的值。</strong></li>
+<li><strong>有序性：按照代码顺序执行，禁止重排序。</strong><h1 id="三种线程创建"><a href="#三种线程创建" class="headerlink" title="三种线程创建"></a>三种线程创建</h1>Java中提供了三种线程的创建方法，继承Thread并重写run方法，实现Runnable接口重写run方法，实现Callable接口重写call方法。</li>
+</ol>
+<blockquote>
+<pre><code>1. 继承Thread类 
+</code></pre><p><img src="/images/并发1-5.jpg" alt="Thread"><br>         运行结果：<br><img src="/images/并发1-6.jpg" alt="thread"></p>
+</blockquote>
+<pre><code>run方法是不会新建线程运行，只是调用当前线程的方法，调用普通方法一样。
+start会新建一个线程，等得到CPU的使用权后则会执行所对应的run方法体的代码。
+</code></pre><blockquote>
+<p><img src="/images/并发1-7.jpg" alt="run"><br><img src="/images/并发1-8.jpg" alt="run方法"></p>
+<pre><code>2. 实现Runnable接口
+</code></pre><p> <img src="/images/并发1-9.jpg" alt="实现runnable"></p>
+<pre><code>3. 实现Callable方法
+</code></pre><p><img src="/images/并发1-10.jpg" alt="callable"></p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1.Thread是类，需要被继承，重写run方法，操作简单。但是Java是单继承，有一定局限性，所以这种方式基本不用。</span><br><span class="line">2.Runnable是接口，实现run方法且无返回值，不能抛异常。</span><br><span class="line">3.Callable也是接口，实现call方法有返回值，可以抛异常，可拿到一个Future对象。</span><br><span class="line">当然Java中基本不用手动去创建这三种线程，出于资源问题、响应效率和方便管理线程会用线程池来创建线程。</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+   <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #111;font-size:16px;">---------------------------------本文结束<i class="fa fa-paw"></i>感谢您的阅读---------------------------------</div>
+    
+</div>
+    
+    </div>
+   
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/内存模型/" rel="tag"><i class="fa fa-tag"> </i> 内存模型</a>
+          
+            <a href="/tags/Happens-before/" rel="tag"><i class="fa fa-tag"> </i> Happens-before</a>
+          
+            <a href="/tags/as-if-serial/" rel="tag"><i class="fa fa-tag"> </i> as-if-serial</a>
+          
+            <a href="/tags/线程安全/" rel="tag"><i class="fa fa-tag"> </i> 线程安全</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/21/深入理解jvm虚拟机二/" rel="next" title="深入理解jvm虚拟机二">
+                <i class="fa fa-chevron-left"></i> 深入理解jvm虚拟机二
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/24/Java并发编程二线程/" rel="prev" title="Java并发编程二线程">
+                Java并发编程二线程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC80NDMyMC8yMDg1Mw=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">zhaoSir</p>
+              <p class="site-description motion-element" itemprop="description">励志全栈开发</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java并发编程一"><span class="nav-number">1.</span> <span class="nav-text">Java并发编程一</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#进程与线程"><span class="nav-number">1.1.</span> <span class="nav-text">进程与线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#并发与并行"><span class="nav-number">1.2.</span> <span class="nav-text">并发与并行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么使用多线程"><span class="nav-number">1.3.</span> <span class="nav-text">为什么使用多线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程的生命周期"><span class="nav-number">1.4.</span> <span class="nav-text">线程的生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java内存模型"><span class="nav-number">1.5.</span> <span class="nav-text">Java内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#重排序"><span class="nav-number">1.5.1.</span> <span class="nav-text">重排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存模型"><span class="nav-number">1.5.2.</span> <span class="nav-text">内存模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Happens-before"><span class="nav-number">1.5.3.</span> <span class="nav-text">Happens-before</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#as-if-serial语义"><span class="nav-number">1.5.4.</span> <span class="nav-text">as-if-serial语义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#happens-before与JMM的关系"><span class="nav-number">1.5.5.</span> <span class="nav-text">happens-before与JMM的关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程安全"><span class="nav-number">1.6.</span> <span class="nav-text">线程安全</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三种线程创建"><span class="nav-number">2.</span> <span class="nav-text">三种线程创建</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zhaoSir</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">网站字总数&#58;</span>
+    
+    <span title="网站字总数">8.2k</span>
+  
+  
+</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":320},"mobile":{"show":true},"log":false,"tagMode":false});</script></body>
+</html>
